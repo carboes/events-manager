@@ -37,10 +37,22 @@ class EM_Widget extends WP_Widget {
     	$instance = array_merge($this->defaults, $instance);
     	$instance = $this->fix_scope($instance); // depcreciate	
 
+    	$em_category_link = null;
+	    if ($instance['category'] != '0' AND strpos($instance['category'], ',') == false) {
+	    	$em_category = em_get_category($instance['category']);
+			$em_category_link = $em_category->get_url();
+		}
+
     	echo $args['before_widget'];
     	if( !empty($instance['title']) ){
 		    echo $args['before_title'];
-		    echo apply_filters('widget_title',$instance['title'], $instance, $this->id_base);
+		    if ($em_category_link != null) {
+		    	echo '<a href="'.$em_category_link.'">';
+		    }
+		    echo apply_filters('widget_title', $instance['title'], $instance, $this->id_base);
+		   	if ($em_category_link != null) {
+		    	echo '</a>';
+		    }
 		    echo $args['after_title'];
     	}
     	//remove owner searches
@@ -69,7 +81,7 @@ class EM_Widget extends WP_Widget {
 		$events = EM_Events::get(apply_filters('em_widget_events_get_args',$instance));
 		
 		//output events
-		echo "<ul>";
+		echo "<ul class='events-size-".count($events)."'>";
 		if ( count($events) > 0 ){
 			foreach($events as $event){				
 				echo $event->output( $instance['format'] );
@@ -79,6 +91,9 @@ class EM_Widget extends WP_Widget {
 		}
 		if ( !empty($instance['all_events']) ){
 			$events_link = (!empty($instance['all_events_text'])) ? em_get_link($instance['all_events_text']) : em_get_link(__('all events','dbem'));
+			if ($em_category_link != null) {
+		    	$events_link = '<a href="'.$em_category_link.'">'.$instance['all_events_text'].'</a>';
+		    }
 			echo '<li class="all-events-link">'.$events_link.'</li>';
 		}
 		echo "</ul>";
